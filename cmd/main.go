@@ -19,6 +19,7 @@ func main() {
 	router.Use(corsMiddleware())
 
 	router.POST("/", addMessage)
+	router.GET("/", getMessages)
 	router.Run(":" + port)
 }
 
@@ -35,6 +36,19 @@ func corsMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+func getMessages(c *gin.Context) {
+	data, err := os.ReadFile("data.txt")
+	if err != nil {
+		if os.IsNotExist(err) {
+			c.String(http.StatusOK, "")
+			return
+		}
+		fmt.Println("Ошибка чтения файла:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "File read error"})
+		return
+	}
+	c.String(http.StatusOK, string(data))
 }
 
 func addMessage(c *gin.Context) {
